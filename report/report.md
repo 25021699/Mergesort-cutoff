@@ -3,7 +3,14 @@
 
 
 ## 1. Mục tiêu và câu hỏi thí nghiệm
+## 1. Mục tiêu và câu hỏi thí nghiệm
 
+Mergesort có chi phí gọi đệ quy và sao chép mảng phụ đáng kể khi kích thước mảng con trở nên nhỏ. Một cải tiến kinh điển trong giáo trình là đặt ngưỡng **CUTOFF** để chuyển sang **Insertion Sort** khi mảng con đủ nhỏ. Các phiên bản giáo trình thường gợi ý `CUTOFF = 7` (cũ) hoặc `CUTOFF = 10` (mới), nhưng giá trị tối ưu thực tế phụ thuộc vào phần cứng, bộ nhớ đệm (CPU cache), trình biên dịch JIT và cách cài đặt.
+
+Thí nghiệm này nhằm trả lời 3 câu hỏi trên chính cấu hình máy đo và bản cài đặt Mergesort từ bài giảng:
+1. Giá trị (hoặc khoảng giá trị) `CUTOFF` nào cho thời gian chạy tốt nhất trên dữ liệu ngẫu nhiên (`random`)?
+2. Hai giá trị giáo trình (`7` và `10`) có khác biệt có ý nghĩa thống kê không, và so với điểm tối ưu đo được thì chênh lệch bao nhiêu?
+3. Điểm `CUTOFF` tối ưu thay đổi như thế nào khi dữ liệu đầu vào có cấu trúc (`sorted`, `reverse`, `nearly`, `dups`)?
 ## 2. Mô tả thí nghiệm
 
 ### 2.1 Môi trường
@@ -178,33 +185,39 @@ cutoff nào có p ≥ 0.05 được coi là *không khác biệt có ý nghĩa t
 
 ## 4. Phân tích
 
-1. **Cutoff có ích rõ rệt.** Trên dữ liệu random, so với mergesort thuần (cutoff=1) thời gian giảm khoảng 22% (N=10⁴, cutoff 32),
-   13% (N=10⁵, cutoff 24) và 11% (N=10⁶, cutoff 24). Lý do: ở mức đệ quy thấp nhất mergesort phải gọi đệ quy, copy sang `aux` và trộn cho những mảng chỉ vài phần tử,
-   trong khi insertion sort trên mảng ≤ vài chục phần tử gần như không có overhead.
-2. **Đường cong có đáy phẳng và rộng (khoảng 12–32).** Chi phí của insertion sort tăng theo bình phương kích thước khối nên cutoff quá lớn
-   (64, 100) làm thời gian tăng trở lại, nhưng trong vùng 12–32 chênh lệch giữa các giá trị nhỏ hơn nhiễu đo. Ở N=10⁶ hầu hết cutoff từ 2 đến 48 không khác best có ý nghĩa thống kê.
-   Điều này cho thấy **không nên tin vào "một con số chính xác"**; kết luận đúng là một khoảng.
-3. **7 và 10 gần như tương đương nhau** (paired t-test cho random: p = 0.59, 0.63, 0.24 với N = 10⁴, 10⁵, 10⁶; không khác biệt có ý nghĩa).
-   Tuy nhiên với N=10⁵ cả hai đều chậm hơn cutoff 24 khoảng 6–7% và nằm ngoài nhóm "không khác best"; ở N=10⁶ chậm hơn 2–5% nhưng chưa đủ ý nghĩa thống kê do nhiễu lớn.
-   Trên máy này giá trị lớn hơn (khoảng 16–24) cho kết quả nhỉnh hơn 7/10.
-4. **Dữ liệu có cấu trúc cho đáp án khác nhau.**
-   - `sorted`, `nearly`: cutoff lớn (64–100, biên của dải thử) thắng, vì insertion sort chạy tuyến tính trên dữ liệu gần có thứ tự trong khi mergesort bài giảng
-     không có bước "stop if already sorted" nên luôn trộn đủ N lg N. Đây là lý do cutoff lớn trông "tốt" ở các nhóm này, không phải thông tin về dữ liệu ngẫu nhiên.
-   - `reverse`: đúng trường hợp xấu nhất của insertion sort (bình phương), nên cutoff tốt nhất nhỏ (7–12) và cutoff 64–100 chậm rõ rệt
-     (ví dụ N=10⁵: cutoff 100 → khoảng 19 ms so với khoảng 7.5 ms ở cutoff 7).
-   - `dups`: cutoff tốt nhất 10–16.
-   Vì vậy ta chọn cutoff theo `random` (trường hợp tổng quát) và dùng các nhóm còn lại để kiểm tra độ bền; giá trị khoảng 16 cho độ chậm tương đối nhỏ nhất khi gộp mọi nhóm và vẫn nằm trong nhóm "không khác best" ở cả ba N của `random`.
-5. **Độ tin cậy của phép đo.** Ở N=10⁶ chỉ có 15 lần lặp và CI95 khoảng ±15–20 ms (~7% giá trị trung bình), nên khó phân biệt các cutoff gần nhau;
-   khi N nhỏ hơn thì nhiễu tương đối của thời gian ngắn (≈1 ms) cũng lớn (ví dụ N=10⁴ có độ lệch chuẩn rất khác nhau giữa các cutoff).
-   Thiết kế xen kẽ + paired test giúp giảm ảnh hưởng nhiễu, nhưng điểm cực tiểu chính xác (24 hay 32...) không nên diễn giải quá mức.
+## 4. Phân tích
+
+1. **Cutoff mang lại cải thiện rõ rệt so với mergesort thuần (`cutoff = 1`).**
+   Trên dữ liệu `random`, việc áp dụng cutoff giúp giảm thời gian chạy trung bình khoảng **11,6%** ở N = 10⁴ (từ 1,334 ms xuống 1,179 ms tại `cutoff = 14`, tăng tốc 1,132×), **8,8%** ở N = 10⁵ (từ 17,250 ms xuống 15,729 ms tại `cutoff = 20`, tăng tốc 1,097×) và **8,8%** ở N = 10⁶ (từ 236,383 ms xuống 215,663 ms tại `cutoff = 16`, tăng tốc 1,096×). Ở tầng lá của cây đệ quy, mergesort phải gọi hàm đệ quy, sao chép sang mảng phụ `aux` và trộn cho các mảng chỉ vài phần tử; chuyển sang insertion sort giúp loại bỏ phần lớn chi phí phụ (overhead) này và tận dụng tốt bộ nhớ đệm L1 của CPU.
+
+
+2. **Đường cong có vùng đáy phẳng và rộng, tập trung quanh `12–24`.**
+   Khi cutoff quá lớn (`64`, `100`), độ phức tạp bậc hai của insertion sort bắt đầu lấn át lợi ích giảm đệ quy nên thời gian tăng vọt trở lại — ở N = 10⁶, `cutoff = 64` (239,001 ms) và `cutoff = 100` (236,740 ms) thậm chí chậm hơn cả mergesort thuần (236,383 ms). Ngược lại, trong khoảng `8–24` (đặc biệt là **`12–24`**), hiệu năng gần như đi ngang: vùng giao của nhóm "không khác best (p >= 0,05)" trên cả ba kích thước N của `random` là **{8, 12, 16, 20, 24}**. Điều này cho thấy trên thực tế không tồn tại một con số tối ưu duy nhất mà là một *khoảng tối ưu*.
+
+
+3. **So sánh hai giá trị giáo trình `7` và `10` với kết quả đo được.**
+    - **Giữa 7 và 10:** Kiểm định paired t-test trên dữ liệu `random` cho `p = 0,506` (N = 10⁴), `p = 0,959` (N = 10⁵) và `p = 0,088` (N = 10⁶) — đều lớn hơn 0,05. Như vậy **7 và 10 không có sự khác biệt có ý nghĩa thống kê** trên dữ liệu ngẫu nhiên.
+    - **So với điểm tối ưu trên máy này:** Ở N = 10⁴ và N = 10⁵, cả 7 và 10 vẫn nằm trong nhóm không khác best (ở N = 10⁵ chỉ chậm hơn `cutoff = 20` khoảng 1,3%). Tuy nhiên khi tăng lên N = 10⁶, cả `cutoff = 7` (220,665 ms, chậm hơn best 2,3%) và `cutoff = 10` (218,278 ms, chậm hơn best 1,2%) đều **nằm ngoài nhóm không khác best**, cho thấy trên CPU hiện đại và JVM mới (OpenJDK 26), ngưỡng tối ưu dịch chuyển lên cao hơn một chút (quanh **16–20**) so với gợi ý cổ điển của giáo trình.
+
+
+4. **Dữ liệu có cấu trúc tạo ra các điểm tối ưu rất khác nhau.**
+    - `sorted` và `nearly`: cutoff lớn (**64–100**, chạm biên trên của dải khảo sát) đạt hiệu năng tốt nhất, nhanh hơn mergesort thuần từ **1,40× đến 2,00×**. Nguyên nhân là insertion sort chạy tuyến tính $O(k)$ trên các đoạn đã hoặc gần có thứ tự, trong khi mergesort bài giảng không cài bước dừng sớm (*stop if already sorted*) nên luôn tốn đủ chi phí trộn.
+    - `reverse`: đây là trường hợp xấu nhất $O(k^2)$ của insertion sort, nên cutoff tối ưu bị kéo xuống rất thấp, chỉ nằm trong khoảng **4–8** (cụ thể tốt nhất ở `8` với N = 10⁴, `4` với N = 10⁵ và `7` với N = 10⁶; ở N = 10⁴ và N = 10⁶, `cutoff = 7` nhanh hơn `cutoff = 10` có ý nghĩa thống kê với `p = 0,000` và `p = 0,022`).
+    - `dups` (nhiều phần tử trùng lặp): ít phải hoán đổi hơn so với mảng ngẫu nhiên thuần túy nên ưu ái cutoff nhỉnh hơn một chút, tối ưu ổn định ở **20–24** (`24` ở N = 10⁴ và `20` ở N = 10⁵, 10⁶; nhóm không khác best ở N = 10⁶ là `{16, 20, 24}`).
+
+   Xét bảng độ chậm tương đối trung bình, **`cutoff = 20`** đạt giá trị nhỏ nhất trên toàn bộ 15 kịch bản (**1,125**), nhỏ nhất trên các bộ dữ liệu lớn `N >= 10⁵` (**1,100**), và đồng hạng nhất với `cutoff = 16` trên `random N >= 10⁵` (**1,001** — chỉ lệch 0,1% so với mốc tốt nhất).
+
+
+5. **Độ tin cậy của phép đo.**
+
+   Nhờ cơ chế warm-up JIT và chạy xen kẽ (interleaved) trên phần cứng ổn định, sai số đo ở quy mô lớn rất nhỏ: tại N = 10⁶ (15 lần lặp), khoảng tin cậy 95% (`ci95`) của dữ liệu `random` chỉ nằm trong khoảng **±1,02 đến ±3,23 ms** (tương đương 0,5%–1,5% giá trị trung bình; riêng tại `cutoff = 16` và `20` chỉ khoảng ±1,03 ms). Ở N = 10⁴, thời gian chạy rất ngắn (~1,2 ms) nên nhiễu tương đối lớn hơn (`std` dao động từ 0,042 đến 0,215 ms), khiến dải rộng 5–32 không thể phân biệt rạch ròi về mặt thống kê.
 
 ## 5. Kết luận
 
-- Trên máy đo, với mergesort cài theo bài giảng và dữ liệu `random`, **CUTOFF tốt nhất theo trung bình là 24** (N=10⁵, 10⁶); vùng gần tối ưu rộng, khoảng **12–32**.
-  Để chọn một giá trị cho mọi loại dữ liệu và kích thước, **CUTOFF ≈ 16** là lựa chọn an toàn (chậm hơn best khoảng 2–3% trên random với N ≥ 10⁵; ở N=10⁴ chênh ~6% nhưng nhiễu lớn; và có độ chậm tương đối nhỏ nhất khi gộp mọi nhóm).
-- So với mergesort thuần, cutoff phù hợp giúp nhanh hơn khoảng 11–13% (N ≥ 10⁵) trên dữ liệu random.
-- CUTOFF 7 và 10 của giáo trình không khác nhau có ý nghĩa thống kê và chậm hơn mức tối ưu của máy này một chút (~2–7% trên random); giá trị tối ưu phụ thuộc phần cứng/JVM nên cần đo lại trên từng máy.
-
+- Trên cấu hình máy thử nghiệm (`Intel Core Ultra 5 225H`, 14 nhân, Windows 11, OpenJDK 26) với bản cài đặt Mergesort theo bài giảng, **khoảng CUTOFF tối ưu trên dữ liệu `random` là `16–20`** (nằm gọn trong vùng đáy phẳng an toàn `12–24`).
+- Nếu phải chọn **một giá trị duy nhất** cân bằng tốt cho cả dữ liệu ngẫu nhiên lẫn các phân bố có cấu trúc, **`CUTOFF = 20`** là lựa chọn khuyến nghị tốt nhất (đạt độ chậm tương đối trung bình nhỏ nhất khi gộp mọi nhóm ở mức 1,125; đồng hạng nhất 1,001 trên `random N >= 10⁵`; nằm trong nhóm không khác best ở cả 3 kích thước của `random` và `dups`). `CUTOFF = 16` là phương án thay thế gần như tương đương.
+- So với mergesort thuần (`cutoff = 1`), dùng `CUTOFF = 16–20` giúp giảm khoảng **8,8%–11,6%** thời gian chạy trên dữ liệu `random` (và lên tới 40%–50% trên dữ liệu đã/gần sắp xếp).
+- Hai con số giáo trình **`7` và `10`** không khác nhau có ý nghĩa thống kê trên dữ liệu `random`, vẫn đem lại phần lớn lợi ích so với mergesort thuần, nhưng chậm hơn khoảng **1,2%–2,3%** so với vùng tối ưu `16–20` ở N = 10⁶. Kết quả này khẳng định cần đo thực nghiệm trên đúng môi trường đích thay vì áp dụng cứng nhắc hằng số trong sách.
 ## 6. Hạn chế
 - Đo trên một máy (VM 1 vCPU), một JVM, nên nhiễu nền có thể lớn; chỉ có 15 lần lặp ở N=10⁶.
 - Chỉ thử kiểu `Integer` (đối tượng đóng hộp, so sánh qua `compareTo`); kiểu khác (String, đối tượng lớn, `int[]`) có thể cho cutoff khác.
