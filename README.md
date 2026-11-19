@@ -1,6 +1,6 @@
 # Thực nghiệm tìm giá trị CUTOFF tối ưu cho Mergesort
 
-Thí nghiệm đánh giá ảnh hưởng của ngưỡng `CUTOFF` (chuyển sang Insertion Sort với mảng con nhỏ) trên bản cài đặt **Top-down Mergesort từ bài giảng**, so sánh với các mốc giáo trình (`7` và `10`) theo tinh thần chủ đề *1.3. Algorithm Analysis*.
+Thí nghiệm đánh giá ảnh hưởng của ngưỡng `CUTOFF` (chuyển sang Insertion Sort với mảng con nhỏ) trên bản cài đặt **Top-down Mergesort từ bài giảng**, so sánh với các mốc giáo trình (`7` và `10`) 
 
 ## Tóm tắt kết quả chính
 
