@@ -1,7 +1,7 @@
 import java.util.Arrays;
 import java.util.Random;
 
-/** Kiểm thử tính đúng đắn: so với Arrays.sort, mọi cutoff, nhiều kích thước, + kiểm tra ổn định. */
+
 public class MergeSortTest {
     record Item(int key, int id) implements Comparable<Item> {
         public int compareTo(Item o) { return Integer.compare(key, o.key); }

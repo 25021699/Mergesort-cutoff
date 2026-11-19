@@ -2,17 +2,6 @@ import java.io.*;
 import java.util.Random;
 import java.util.zip.GZIPOutputStream;
 
-/**
- * Sinh bộ dữ liệu thí nghiệm (cố định seed => tái lập được).
- * 5 loại dữ liệu (kiểu Integer, đúng với kiểu Comparable dùng trong bài giảng):
- *   random   : số nguyên ngẫu nhiên đều
- *   sorted   : đã sắp tăng dần
- *   reverse  : sắp giảm dần
- *   nearly   : đã sắp, rồi hoán đổi ngẫu nhiên ~1% cặp phần tử (gần như có thứ tự)
- *   dups     : ngẫu nhiên nhưng chỉ có 100 giá trị khác nhau (nhiều khóa trùng)
- *
- * Chạy:  java -cp out DataGenerator data   -> ghi data/<type>_<N>.txt.gz (mỗi dòng 1 số)
- */
 public class DataGenerator {
     public static final String[] TYPES = {"random", "sorted", "reverse", "nearly", "dups"};
     public static final long BASE_SEED = 20261119L;

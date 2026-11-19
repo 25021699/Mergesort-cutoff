@@ -1,18 +1,7 @@
 import java.io.*;
 import java.util.*;
 
-/**
- * Thí nghiệm đo thời gian mergesort theo CUTOFF.
- *
- * Thiết kế thí nghiệm (xem report/report.md):
- *  - Biến độc lập: CUTOFF, kích thước N, loại dữ liệu.  Biến phụ thuộc: thời gian chạy (ms).
- *  - Với mỗi (loại dữ liệu, N): lặp REPS lần; trong MỖI lần lặp chạy lần lượt MỌI cutoff
- *    (thứ tự xoay vòng) trên bản sao mới của cùng một mảng -> các cutoff chịu cùng điều kiện
- *    máy (nhiễu, nhiệt độ, GC) và có thể so sánh theo cặp (paired).
- *  - Khởi động JIT (warm-up) trước khi đo; thời gian sao chép mảng KHÔNG được tính.
- *
- * Chạy: java -Xmx2g -cp out Benchmark <csv_out> [reps_N1e4 reps_N1e5 reps_N1e6]
- */
+
 public class Benchmark {
     static final int[] CUTOFFS = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 20, 24, 32, 48, 64, 100};
     static final int[] SIZES = {10_000, 100_000, 1_000_000};

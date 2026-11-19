@@ -52,6 +52,7 @@ public class MergeSort {
         sort(a, aux, 0, a.length - 1, cutoff);
     }
 
+
     public static void sort(Comparable[] a) {
         sort(a, DEFAULT_CUTOFF);
     }
